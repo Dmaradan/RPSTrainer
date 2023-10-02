@@ -18,16 +18,21 @@ struct ContentView: View {
     @State private var playerShouldWin = Bool.random()
     @State private var playerChoice = Choice.paper
     @State private var score = 0
+    @State private var roundsRemaining = 10
     @State private var resultsText = "Confirm your choice to see if you win"
+    @State private var computerChoiceHidden = true
     
     var body: some View {
         VStack(spacing: 30) {
-            Button("Print Computer Choice") {
-                setChoices()
+            
+            Text("Your score is \(score)")
+            Text("\(roundsRemaining) rounds remaining")
+            
+            if !computerChoiceHidden {
+                Text(emojiStyle())
+                    .font(.system(size: 200))
             }
             
-            Text(emojiStyle())
-                .font(.system(size: 200))
             Text(playerShouldWin ? "Try to win" : "Try to lose")
             
             Picker("Choices: ", selection: $playerChoice) {
@@ -37,8 +42,16 @@ struct ContentView: View {
             }
             .pickerStyle(.segmented)
             
-            Button("Confirm Choice") {
-                resultsText = checkVictory() ? "You won!" : "You lost"
+            Button(computerChoiceHidden ? "Confirm Choice" : "Reset") {
+                if computerChoiceHidden {
+                    computerChoiceHidden = false
+                    resultsText = checkVictory() ? "You won!" : "You lost"
+                } else {
+                    // reset game
+                    setChoices()
+                    roundsRemaining -= 1
+                }
+                
             }
             .buttonStyle(.borderedProminent)
             
@@ -47,9 +60,13 @@ struct ContentView: View {
             
         }
         .padding()
+        .onAppear() {
+            setChoices()
+        }
     }
     
     func setChoices() {
+        computerChoiceHidden = true
         computerChoice = Choice.allCases[Int.random(in: 0...2)]
         playerShouldWin.toggle()
     }
@@ -96,6 +113,9 @@ struct ContentView: View {
             }
         }
         
+        if (playerShouldWin && won) || (!playerShouldWin && !won) {
+            score += 1
+        }
         return (playerShouldWin ? won : !won)
     }
 }
